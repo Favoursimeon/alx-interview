@@ -1,68 +1,70 @@
 #!/usr/bin/python3
-"""
-Solution to the nqueens problem
-"""
+
+"""Method that calculates the non-attacking nqueens of
+n * n board - Check the README.md file for detailed info"""
+
 import sys
 
 
-def backtrack(r, n, cols, pos, neg, board):
-    """
-    backtrack function to find solution
-    """
-    if r == n:
-        res = []
-        for l in range(len(board)):
-            for k in range(len(board[l])):
-                if board[l][k] == 1:
-                    res.append([l, k])
-        print(res)
-        return
-
-    for c in range(n):
-        if c in cols or (r + c) in pos or (r - c) in neg:
-            continue
-
-        cols.add(c)
-        pos.add(r + c)
-        neg.add(r - c)
-        board[r][c] = 1
-
-        backtrack(r+1, n, cols, pos, neg, board)
-
-        cols.remove(c)
-        pos.remove(r + c)
-        neg.remove(r - c)
-        board[r][c] = 0
-
-
-def nqueens(n):
-    """
-    Solution to nqueens problem
+def ChessBoard(n: int):
+    """Program that solves the N queens problem with
+    Backtracking algorithm
     Args:
-        n (int): number of queens. Must be >= 4
+        n (int): no of non-attacking queens to place on board.
+                (n)^2 determines the size of chess board
+
     Return:
-        List of lists representing coordinates of each
-        queen for all possible solutions
+        List[List[int]]: List of list of rows & columns of where
+        queens are placed.
     """
-    cols = set()
-    pos_diag = set()
-    neg_diag = set()
-    board = [[0] * n for i in range(n)]
+    result = list()
 
-    backtrack(0, n, cols, pos_diag, neg_diag, board)
+    def checkBoard(row, col, col_in_row):
+        """Checks if queen can be placed without attacking other queens"""
+        for r in range(row):
+            if row - r == abs(col - col_in_row[r]):
+                return False
+        return True
+
+    def saveBoard(row, cols, col_in_row):
+        """Saves the current state (position of the queens) of the board"""
+        if row == n:
+            con_result = []
+            for r in range(n):
+                temp_result = []
+                for c in range(n):
+                    if c == col_in_row[r]:
+                        temp_result.append(r)
+                        temp_result.append(col_in_row[r])
+                        con_result.append(temp_result)
+                if len(con_result) == n:
+                    result.append(con_result)
+                    temp_result, con_result = [], []
+
+    def placeQueen(row, cols, col_in_row):
+        """Places N non-attacking queens on an N * N chessboard"""
+        saveBoard(row, cols, col_in_row)
+        for col in range(n):
+            if cols[col] == 0 and checkBoard(row, col, col_in_row):
+                cols[col] = 1
+                col_in_row[row] = col
+                placeQueen(row + 1, cols, col_in_row)
+                cols[col] = 0
+    placeQueen(0, [0]*n, [0]*n)
+    return result
 
 
-if __name__ == "__main__":
-    n = sys.argv
-    if len(n) != 2:
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
         print("Usage: nqueens N")
         sys.exit(1)
-    try:
-        nn = int(n[1])
-        if nn < 4:
-            print("N must be at least 4")
-            sys.exit(1)
-        nqueens(nn)
-    except ValueError:
+    if sys.argv[1].isdigit() is False:
         print("N must be a number")
         sys.exit(1)
+    if int(sys.argv[1]) < 4:
+        print("N must be at least 4")
+        sys.exit(1)
+
+    nqueens = ChessBoard(int(sys.argv[1]))
+    for queens in nqueens:
+        print(queens)
