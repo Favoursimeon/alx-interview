@@ -1,50 +1,28 @@
 #!/usr/bin/node
+/* Prints all Casts of Star Wars movie
+Read the README.md file for more info
+*/
 
-const axios = require('axios');
-const process = require('process');
+const request = require('request');
+const starWarsAPI = 'https://swapi-api.alx-tools.com/api/';
+const endPoint = 'films/';
+const movieID = process.argv[2].toString();
 
-async function getMovieData(movieId) {
-  try {
-    const response = await axios.get(`https://swapi-api.alx-tools.com/api/films/${movieId}/`);
-    return response.data;
-  } catch (error) {
-    return null;
-  }
-}
+request(starWarsAPI + endPoint + movieID, function (error, _, body) {
+  if (error) console.error(error);
+  const objects = JSON.parse(body);
+  const casts = objects.characters;
+  Printresult(casts);
+});
 
-async function getCharacterName(characterUrl) {
-  try {
-    const response = await axios.get(characterUrl);
-    return response.data.name;
-  } catch (error) {
-    return null;
-  }
-}
-
-async function main() {
-  if (process.argv.length !== 3) {
-    console.log("Usage: ./script.js <movie_id>");
-    process.exit(1);
-  }
-
-  const movieId = process.argv[2];
-  const movieData = await getMovieData(movieId);
-
-  if (!movieData) {
-    console.log(`Movie with ID ${movieId} not found.`);
-    return;
-  }
-
-  const characterUrls = movieData.characters;
-  for (const characterUrl of characterUrls) {
-    const characterName = await getCharacterName(characterUrl);
-    if (characterName) {
-      console.log(characterName);
-    } else {
-      console.log(`Could not retrieve character name from ${characterUrl}`);
+/* reculsively and synchronously request for each character
+and prints out the casts */
+function Printresult (casts, counter = 0) {
+  request(casts[counter], function (error, _, body) {
+    if (error) console.error(error);
+    console.log(JSON.parse(body).name);
+    if (++counter < casts.length) {
+      Printresult(casts, counter++);
     }
-  }
+  });
 }
-
-main();
-
